@@ -1,0 +1,145 @@
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from .models import Client, Employee, PawnedItem, Loan, Transaction
+from django.http import HttpResponseNotFound
+
+# Головна сторінка
+def home(request):
+    return render(request, 'home.html', {})  # Відображення для головної сторінки
+
+# Клієнти
+def clients_list(request):
+    clients = Client.objects.all()
+    return render(request, 'clients.html', {'clients': clients})
+
+def client_detail(request, client_id):
+    try:
+        client = Client.objects.get(id=client_id)
+        return render(request, 'client_detail.html', {'client': client})
+    except Client.DoesNotExist:
+        return HttpResponseNotFound('Клієнта не знайдено')
+
+def add_client(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        surname = request.POST.get('surname')
+        address = request.POST.get('address')
+        phone_number = request.POST.get('phone_number')
+        passport_number = request.POST.get('passport_number')
+        Client.objects.create(name=name, surname=surname, address=address, phone_number=phone_number, passport_number=passport_number)
+        return redirect(reverse('clients_list'))
+    else:
+        return render(request, 'add_client.html')
+
+# Співробітники
+def employees_list(request):
+    employees = Employee.objects.all()
+    return render(request, 'employees.html', {'employees': employees})
+
+def employee_detail(request, employee_id):
+    try:
+        employee = Employee.objects.get(id=employee_id)
+        return render(request, 'employee_detail.html', {'employee': employee})
+    except Employee.DoesNotExist:
+        return HttpResponseNotFound('Співробітника не знайдено')
+
+def add_employee(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        position = request.POST.get('position')
+        phone_number = request.POST.get('phone_number')
+        Employee.objects.create(name=name, position=position, phone_number=phone_number)
+        return redirect(reverse('employees_list'))
+    else:
+        return render(request, 'add_employee.html')
+
+# Предмети застави
+def pawned_items_list(request):
+    items = PawnedItem.objects.all()
+    return render(request, 'pawned_items.html', {'items': items})
+
+def pawned_item_detail(request, item_id):
+    try:
+        item = PawnedItem.objects.get(id=item_id)
+        return render(request, 'pawned_item_detail.html', {'item': item})
+    except PawnedItem.DoesNotExist:
+        return HttpResponseNotFound('Предмет не знайдено')
+
+def add_pawned_item(request):
+    if request.method == 'POST':
+        item_name = request.POST.get('item_name')
+        description = request.POST.get('description')
+        value = request.POST.get('value')
+        pawn_date = request.POST.get('pawn_date')
+        client_id = request.POST.get('client_id')
+        try:
+            client = Client.objects.get(id=client_id)
+            PawnedItem.objects.create(item_name=item_name, description=description, value=value, pawn_date=pawn_date, client=client)
+            return redirect(reverse('pawned_items_list'))
+        except Client.DoesNotExist:
+            return HttpResponseNotFound('Клієнта не знайдено')
+    else:
+        clients = Client.objects.all()
+        return render(request, 'add_pawned_item.html', {'clients': clients})
+
+# Позики
+def loans_list(request):
+    loans = Loan.objects.all()
+    return render(request, 'loans.html', {'loans': loans})
+
+def loan_detail(request, loan_id):
+    try:
+        loan = Loan.objects.get(id=loan_id)
+        return render(request, 'loan_detail.html', {'loan': loan})
+    except Loan.DoesNotExist:
+        return HttpResponseNotFound('Позики не знайдено')
+
+def add_loan(request):
+    if request.method == 'POST':
+        client_id = request.POST.get('client_id')
+        item_id = request.POST.get('item_id')
+        loan_amount = request.POST.get('loan_amount')
+        interest_rate = request.POST.get('interest_rate')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        try:
+            client = Client.objects.get(id=client_id)
+            item = PawnedItem.objects.get(id=item_id)
+            Loan.objects.create(client=client, item=item, loan_amount=loan_amount, interest_rate=interest_rate, start_date=start_date, end_date=end_date)
+            return redirect(reverse('loans_list'))
+        except (Client.DoesNotExist, PawnedItem.DoesNotExist):
+            return HttpResponseNotFound('Клієнта або предмет не знайдено')
+    else:
+        clients = Client.objects.all()
+        items = PawnedItem.objects.all()
+        return render(request, 'add_loan.html', {'clients': clients, 'items': items})
+
+# Транзакції
+def transactions_list(request):
+    transactions = Transaction.objects.all()
+    return render(request, 'transactions.html', {'transactions': transactions})
+
+def transaction_detail(request, transaction_id):
+    try:
+        transaction = Transaction.objects.get(id=transaction_id)
+        return render(request, 'transaction_detail.html', {'transaction': transaction})
+    except Transaction.DoesNotExist:
+        return HttpResponseNotFound('Транзакції не знайдено')
+
+def add_transaction(request):
+    if request.method == 'POST':
+        loan_id = request.POST.get('loan_id')
+        employee_id = request.POST.get('employee_id')
+        transaction_date = request.POST.get('transaction_date')
+        amount = request.POST.get('amount')
+        try:
+            loan = Loan.objects.get(id=loan_id)
+            employee = Employee.objects.get(id=employee_id)
+            Transaction.objects.create(loan=loan, employee=employee, transaction_date=transaction_date, amount=amount)
+            return redirect(reverse('transactions_list'))
+        except (Loan.DoesNotExist, Employee.DoesNotExist):
+            return HttpResponseNotFound('Позики або співробітника не знайдено')
+    else:
+        loans = Loan.objects.all()
+        employees = Employee.objects.all()
+        return render(request, 'add_transaction.html', {'loans': loans, 'employees': employees})
