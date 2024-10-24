@@ -1,0 +1,26 @@
+from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
+
+class Repository:
+    
+    @staticmethod
+    def get_all(model_name):
+        # Єдина точка доступу для отримання всіх об'єктів моделі
+        model = apps.get_model('pawnshop_app', model_name)
+        return model.objects.all()
+
+    @staticmethod
+    def get_by_id(model_name, instance_id):
+        # Єдина точка доступу для отримання об'єкта за його ID
+        model = apps.get_model('pawnshop_app', model_name)
+        try:
+            return model.objects.get(id=instance_id)
+        except ObjectDoesNotExist:
+            return None
+
+    @staticmethod
+    def add(model_name, **kwargs):
+        # Єдина точка доступу для створення нового екземпляра моделі
+        model = apps.get_model('pawnshop_app', model_name)
+        return model.objects.create(**kwargs)
