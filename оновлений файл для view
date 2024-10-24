@@ -1,0 +1,149 @@
+Oleksanderio, [24.10.2024 19:45]
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from .repository import Repository
+from django.http import HttpResponseNotFound
+
+# Головна сторінка
+def home(request):
+    return render(request, 'home.html', {})  # Відображення для головної сторінки
+
+# Клієнти
+def clients_list(request):
+    clients = Repository.get_all('Client')  # Єдина точка доступу до всіх клієнтів
+    return render(request, 'clients.html', {'clients': clients})
+
+def client_detail(request, client_id):
+    client = Repository.get_by_id('Client', client_id)  # Єдина точка доступу для отримання клієнта
+    if client is None:
+        return HttpResponseNotFound('Клієнта не знайдено')
+    return render(request, 'client_detail.html', {'client': client})
+
+def add_client(request):
+    if request.method == 'POST':
+        data = {
+            'name': request.POST.get('name'),
+            'surname': request.POST.get('surname'),
+            'address': request.POST.get('address'),
+            'phone_number': request.POST.get('phone_number'),
+            'passport_number': request.POST.get('passport_number')
+        }
+        Repository.add('Client', **data)  # Єдина точка доступу для додавання клієнта
+        return redirect(reverse('clients_list'))
+    else:
+        return render(request, 'add_client.html')
+
+# Співробітники
+def employees_list(request):
+    employees = Repository.get_all('Employee')  # Єдина точка доступу до всіх співробітників
+    return render(request, 'employees.html', {'employees': employees})
+
+def employee_detail(request, employee_id):
+    employee = Repository.get_by_id('Employee', employee_id)  # Єдина точка доступу для отримання співробітника
+    if employee is None:
+        return HttpResponseNotFound('Співробітника не знайдено')
+    return render(request, 'employee_detail.html', {'employee': employee})
+
+def add_employee(request):
+    if request.method == 'POST':
+        data = {
+            'name': request.POST.get('name'),
+            'position': request.POST.get('position'),
+            'phone_number': request.POST.get('phone_number')
+        }
+        Repository.add('Employee', **data)  # Єдина точка доступу для додавання співробітника
+        return redirect(reverse('employees_list'))
+    else:
+        return render(request, 'add_employee.html')
+
+# Предмети застави
+def pawned_items_list(request):
+    items = Repository.get_all('PawnedItem')  # Єдина точка доступу до всіх предметів застави
+    return render(request, 'pawned_items.html', {'items': items})
+
+def pawned_item_detail(request, item_id):
+    item = Repository.get_by_id('PawnedItem', item_id)  # Єдина точка доступу для отримання предмета застави
+    if item is None:
+        return HttpResponseNotFound('Предмет не знайдено')
+    return render(request, 'pawned_item_detail.html', {'item': item})
+
+def add_pawned_item(request):
+    if request.method == 'POST':
+        client = Repository.get_by_id('Client', request.POST.get('client_id'))
+        if client is None:
+            return HttpResponseNotFound('Клієнта не знайдено')
+        data = {
+            'item_name': request.POST.get('item_name'),
+            'description': request.POST.get('description'),
+            'value': request.POST.get('value'),
+            'pawn_date': request.POST.get('pawn_date'),
+            'client': client
+        }
+        Repository.add('PawnedItem', **data)  # Єдина точка доступу для додавання предмета застави
+        return redirect(reverse('pawned_items_list'))
+    else:
+        clients = Repository.get_all('Client')
+        return render(request, 'add_pawned_item.html', {'clients': clients})
+
+# Позики
+def loans_list(request):
+    loans = Repository.get_all('Loan')  # Єдина точка доступу до всіх позик
+    return render(request, 'loans.html', {'loans': loans})
+
+def loan_detail(request, loan_id):
+    loan = Repository.get_by_id('Loan', loan_id)  # Єдина точка доступу для отримання позики
+    if loan is None:
+        return HttpResponseNotFound('Позики не знайдено')
+    return render(request, 'loan_detail.html', {'loan': loan})
+
+Oleksanderio, [24.10.2024 19:45]
+def add_loan(request):
+    if request.method == 'POST':
+        client = Repository.get_by_id('Client', request.POST.get('client_id'))
+        item = Repository.get_by_id('PawnedItem', request.POST.get('item_id'))
+        if client is None or item is None:
+            return HttpResponseNotFound('Клієнта або предмет не знайдено')
+        data = {
+            'client': client,
+            'item': item,
+            'loan_amount': request.POST.get('loan_amount'),
+            'interest_rate': request.POST.get('interest_rate'),
+            'start_date': request.POST.get('start_date'),
+            'end_date': request.POST.get('end_date')
+        }
+        Repository.add('Loan', **data)  # Єдина точка доступу для додавання позики
+        return redirect(reverse('loans_list'))
+    else:
+        clients = Repository.get_all('Client')
+        items = Repository.get_all('PawnedItem')
+        return render(request, 'add_loan.html', {'clients': clients, 'items': items})
+
+# Транзакції
+def transactions_list(request):
+    transactions = Repository.get_all('Transaction')  # Єдина точка доступу до всіх транзакцій
+    return render(request, 'transactions.html', {'transactions': transactions})
+
+def transaction_detail(request, transaction_id):
+    transaction = Repository.get_by_id('Transaction', transaction_id)  # Єдина точка доступу для отримання транзакції
+    if transaction is None:
+        return HttpResponseNotFound('Транзакції не знайдено')
+    return render(request, 'transaction_detail.html', {'transaction': transaction})
+
+def add_transaction(request):
+    if request.method == 'POST':
+        loan = Repository.get_by_id('Loan', request.POST.get('loan_id'))
+        employee = Repository.get_by_id('Employee', request.POST.get('employee_id'))
+        if loan is None or employee is None:
+            return HttpResponseNotFound('Позики або співробітника не знайдено')
+        data = {
+            'loan': loan,
+            'employee': employee,
+            'transaction_date': request.POST.get('transaction_date'),
+            'amount': request.POST.get('amount')
+        }
+        Repository.add('Transaction', **data)  # Єдина точка доступу для додавання транзакції
+        return redirect(reverse('transactions_list'))
+    else:
+        loans = Repository.get_all('Loan')
+        employees = Repository.get_all('Employee')
+        return render(request, 'add_transaction.html', {'loans': loans, 'employees': employees})

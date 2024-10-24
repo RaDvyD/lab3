@@ -1,0 +1,113 @@
+from .models import Client, Employee, PawnedItem, Loan, Transaction
+
+class Repository:
+    """Єдина точка доступу до всіх сутностей та їх методів."""
+
+    # Методи для Client
+    @staticmethod
+    def get_all_clients():
+        return Client.objects.all()
+
+    @staticmethod
+    def get_client_by_id(client_id):
+        return Client.objects.get(id=client_id)
+
+    @staticmethod
+    def add_client(name, surname, address, phone_number, passport_number):
+        client = Client(
+            name=name,
+            surname=surname,
+            address=address,
+            phone_number=phone_number,
+            passport_number=passport_number
+        )
+        client.save()
+        return client
+
+    # Методи для Employee
+    @staticmethod
+    def get_all_employees():
+        return Employee.objects.all()
+
+    @staticmethod
+    def get_employee_by_id(employee_id):
+        return Employee.objects.get(id=employee_id)
+
+    @staticmethod
+    def add_employee(name, position, phone_number):
+        employee = Employee(
+            name=name,
+            position=position,
+            phone_number=phone_number
+        )
+        employee.save()
+        return employee
+
+    # Методи для PawnedItem
+    @staticmethod
+    def get_all_pawned_items():
+        return PawnedItem.objects.all()
+
+    @staticmethod
+    def get_pawned_item_by_id(item_id):
+        return PawnedItem.objects.get(id=item_id)
+
+    @staticmethod
+    def add_pawned_item(item_name, description, value, pawn_date, client_id):
+        client = Client.objects.get(id=client_id)
+        item = PawnedItem(
+            item_name=item_name,
+            description=description,
+            value=value,
+            pawn_date=pawn_date,
+            client=client
+        )
+        item.save()
+
+        return item
+
+    # Методи для Loan
+    @staticmethod
+    def get_all_loans():
+        return Loan.objects.all()
+
+    @staticmethod
+    def get_loan_by_id(loan_id):
+        return Loan.objects.get(id=loan_id)
+
+    @staticmethod
+    def add_loan(client_id, item_id, loan_amount, interest_rate, start_date, end_date):
+        client = Client.objects.get(id=client_id)
+        item = PawnedItem.objects.get(id=item_id)
+        loan = Loan(
+            client=client,
+            item=item,
+            loan_amount=loan_amount,
+            interest_rate=interest_rate,
+            start_date=start_date,
+            end_date=end_date
+        )
+        loan.save()
+        return loan
+
+    # Методи для Transaction
+    @staticmethod
+    def get_all_transactions():
+        return Transaction.objects.all()
+
+    @staticmethod
+    def get_transaction_by_id(transaction_id):
+        return Transaction.objects.get(id=transaction_id)
+
+    @staticmethod
+    def add_transaction(loan_id, employee_id, transaction_date, amount):
+        loan = Loan.objects.get(id=loan_id)
+        employee = Employee.objects.get(id=employee_id)
+        transaction = Transaction(
+            loan=loan,
+            employee=employee,
+            transaction_date=transaction_date,
+            amount=amount
+        )
+        transaction.save()
+        return transaction
